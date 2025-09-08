@@ -1,357 +1,455 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AMJ – Majlis Ansarullah</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://unpkg.com/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.js"></script>
+    <meta charset="UTF-8">
+    <title>Budget App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.16/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h2 {
+            color: #333;
+        }
+        .action-buttons {
+            margin-bottom: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        button {
+            margin: 4px;
+            padding: 8px 12px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .modal-content input, .modal-content button, .modal-content label, .modal-content select {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .modal-content input[type="text"], .modal-content input[type="number"], .modal-content select {
+            padding: 8px;
+        }
+        .detail-box {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .detail-item {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .detail-item span {
+            flex-grow: 1;
+            text-align: right;
+        }
+        .detail-header {
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-
-<nav class="fixed top-0 left-0 w-full bg-indigo-700 shadow-lg z-50">
-  <div class="container mx-auto py-4 flex justify-center">
-    <h1 class="text-2xl font-bold text-white">AMJ – Majlis Ansarullah Hannover</h1>
-  </div>
-</nav>
-
-<div class="container mx-auto p-6 pt-28">
-
-  <div class="flex flex-wrap gap-2 mb-4">
-    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">➕ Neuer Kontakt</button>
-    <button onclick="exportAllPDF()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow">📄 Export Gesamt-PDF</button>
-    <label class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg shadow cursor-pointer">
-        📂 CSV importieren
-        <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="importCSV(event)">
-    </label>
-    <button onclick="openClearAllModal()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow">❌ Alles löschen</button>
-  </div>
-
-  <div class="overflow-x-auto bg-white rounded-xl shadow">
-  <table class="min-w-full table-auto border-collapse">
-    <thead class="bg-gray-200">
-      <tr>
-        <th class="px-4 py-2 text-left">Name</th>
-        <th class="px-4 py-2 text-left">Vorname</th>
-        <th class="px-4 py-2 text-left">Einkommen (€)</th>
-        <th class="px-4 py-2 text-left">Majlis</th>
-        <th class="px-4 py-2 text-left">Ijtema</th>
-        <th class="px-4 py-2 text-left">Ishaat</th>
-        <th class="px-4 py-2 text-left">Gesamt Jahr</th>
-        <th class="px-4 py-2">Musi</th>
-        <th class="px-4 py-2 text-left">Aktionen</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
-</div>
-
-  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-      <h2 id="modalTitle" class="text-xl font-bold mb-4">Kontakt hinzufügen</h2>
-      <form id="contactForm" class="space-y-4">
-        <div>
-          <label class="block mb-1">Name</label>
-          <input type="text" id="name" class="w-full border px-3 py-2 rounded-lg" required>
-        </div>
-        <div>
-          <label class="block mb-1">Vorname</label>
-          <input type="text" id="vorname" class="w-full border px-3 py-2 rounded-lg" required>
-        </div>
-        <div>
-          <label class="block mb-1">Monatseinkommen (€)</label>
-          <input type="number" id="einkommen" class="w-full border px-3 py-2 rounded-lg" oninput="updatePreview()" required>
-        </div>
-        <div class="flex items-center gap-2">
-          <input type="checkbox" id="musi">
-          <label for="musi">Musi</label>
-        </div>
-
-        <div class="bg-gray-50 p-3 rounded-lg">
-          <p>💡 <b>Vorschau:</b></p>
-          <p id="previewMajlis">Majlis: 0.00 €</p>
-          <p id="previewIjtema">Ijtema: 0.00 €</p>
-          <p id="previewIshaat">Ishaat: 2.00 €</p>
-          <p id="previewGesamt">Gesamt Jahr: 0.00 €</p>
-        </div>
-
-        <div class="flex justify-end gap-2">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg border">Abbrechen</button>
-          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Speichern</button>
-        </div>
-      </form>
+<body>
+    <h2>Budget Übersicht</h2>
+    <div class="action-buttons">
+        <button onclick="showAddPersonModal()">+ Person hinzufügen</button>
+        <button onclick="exportTotalPDF()">Gesamtsummen als PDF exportieren</button>
+        <button onclick="document.getElementById('csvFileInput').click()">CSV importieren</button>
+        <input type="file" id="csvFileInput" style="display: none;" accept=".csv">
     </div>
-  </div>
 
-  <div id="detailModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-      <h2 class="text-xl font-bold mb-4">📄 Kontakt Details</h2>
-      <div id="detailContent" class="space-y-2"></div>
-      <div class="flex justify-between mt-4">
-        <button onclick="closeDetailModal()" class="px-4 py-2 border rounded-lg">Schließen</button>
-        <button onclick="exportDetailPDF()" class="px-4 py-2 bg-green-600 text-white rounded-lg">📄 Export als PDF</button>
-      </div>
+    <table id="peopleTable">
+        <thead>
+            <tr>
+                <th>Jamaat-ID</th>
+                <th>Vorname</th>
+                <th>Nachname</th>
+                <th>Gesamt Budget</th>
+                <th>AAM/WASIYYAT Budget</th>
+                <th>Bezahlt</th>
+                <th>JALSA SALANA Budget</th>
+                <th>Bezahlt</th>
+                <th>Musi</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div id="personModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Person hinzufügen</h3>
+            <input type="hidden" id="personIndex">
+
+            <label for="anredeSelect">Anrede:</label>
+            <select id="anredeSelect">
+                <option value="A">Herr (A)</option>
+                <option value="K">Herr (K)</option>
+                <option value="L">Frau (L)</option>
+            </select>
+            
+            <label for="vornameInput">Vorname:</label>
+            <input type="text" id="vornameInput" placeholder="Vorname">
+            
+            <label for="nachnameInput">Nachname:</label>
+            <input type="text" id="nachnameInput" placeholder="Nachname">
+
+            <label for="jamaatIdInput">Jamaat-ID:</label>
+            <input type="text" id="jamaatIdInput" placeholder="Jamaat-ID">
+
+            <label for="aamBudgetInput">AAM/WASIYYAT Budget (€):</label>
+            <input type="number" id="aamBudgetInput" value="0">
+            <label for="aamPaidInput">Bezahlt AAM/WASIYYAT (€):</label>
+            <input type="number" id="aamPaidInput" value="0">
+            
+            <label for="jalsaBudgetInput">JALSA SALANA Budget (€):</label>
+            <input type="number" id="jalsaBudgetInput" value="0">
+            <label for="jalsaPaidInput">Bezahlt JALSA SALANA (€):</label>
+            <input type="number" id="jalsaPaidInput" value="0">
+            
+            <label><input type="checkbox" id="musiCheckbox"> Ist Musi?</label>
+            <button onclick="savePerson()">Speichern</button>
+            <button onclick="hidePersonModal()">Abbrechen</button>
+        </div>
     </div>
-  </div>
-
-  <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-      <h2 class="text-lg font-bold mb-4">Kontakt löschen?</h2>
-      <div class="flex justify-end gap-2">
-        <button onclick="closeDeleteModal()" class="px-4 py-2 border rounded-lg">Abbrechen</button>
-        <button id="confirmDeleteBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg">Löschen</button>
-      </div>
+    
+    <div id="detailModal" class="modal">
+        <div class="detail-box">
+            <h3 id="detailTitle"></h3>
+            <div id="detailContent"></div>
+            <button onclick="hideDetailModal()">Schließen</button>
+        </div>
     </div>
-  </div>
-  
-  <div id="clearAllModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-      <h2 class="text-lg font-bold mb-4">Sicher, dass du alle Kontakte löschen möchtest?</h2>
-      <div class="flex justify-end gap-2">
-        <button onclick="closeClearAllModal()" class="px-4 py-2 border rounded-lg">Abbrechen</button>
-        <button id="confirmClearAllBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg">Alle löschen</button>
-      </div>
-    </div>
-  </div>
 
-</div>
+    <script>
+        const { jsPDF } = window.jspdf;
+        let people = [];
 
-<script>
-let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
-let editIndex = null;
-let detailIndex = null;
-let deleteIndex = null;
+        // Event Listener für den Dateiupload
+        document.getElementById('csvFileInput').addEventListener('change', importCSV);
 
-// Berechnung
-function calculateValues(einkommen) {
-  const income = parseFloat(einkommen) || 0;
-  const majlis = income * 0.01;
-  const ijtema = income * 0.002085;
-  const ishaat = 2; // einmal im Jahr
-  const totalYear = majlis*12 + ijtema*12 + ishaat;
-  return { majlis, ijtema, ishaat, totalYear };
-}
+        function showAddPersonModal() {
+            document.getElementById('modalTitle').innerText = 'Person hinzufügen';
+            document.getElementById('personIndex').value = '';
+            document.getElementById('anredeSelect').value = 'A';
+            document.getElementById('vornameInput').value = '';
+            document.getElementById('nachnameInput').value = '';
+            document.getElementById('jamaatIdInput').value = '';
+            document.getElementById('aamBudgetInput').value = '0';
+            document.getElementById('aamPaidInput').value = '0';
+            document.getElementById('jalsaBudgetInput').value = '0';
+            document.getElementById('jalsaPaidInput').value = '0';
+            document.getElementById('musiCheckbox').checked = false;
+            document.getElementById('personModal').style.display = 'flex';
+        }
 
-// Tabelle rendern
-function renderTable() {
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = '';
-  contacts.forEach((c, index) => {
-    const vals = calculateValues(c.einkommen);
-    tbody.innerHTML += `
-      <tr class="border-b">
-        <td class="px-4 py-2">${c.name}</td>
-        <td class="px-4 py-2">${c.vorname}</td>
-        <td class="px-4 py-2">${c.einkommen}</td>
-        <td class="px-4 py-2">${vals.majlis.toFixed(2)}</td>
-        <td class="px-4 py-2">${vals.ijtema.toFixed(2)}</td>
-        <td class="px-4 py-2">${vals.ishaat.toFixed(2)}</td>
-        <td class="px-4 py-2 font-bold text-green-600">${vals.totalYear.toFixed(2)}</td>
-        <td class="px-4 py-2 text-center">${c.musi ? '<span class="text-green-600 text-xl">✅</span>' : '<span class="text-red-600 text-xl">❌</span>'}</td>
-        <td class="px-4 py-2 flex gap-2">
-          <button onclick="openDetailModal(${index})" class="text-gray-700">🔍</button>
-          <button onclick="editContact(${index})" class="text-blue-600">✏️</button>
-          <button onclick="openDeleteModal(${index})" class="text-red-600">🗑️</button>
-        </td>
-      </tr>`;
-  });
-  localStorage.setItem('contacts', JSON.stringify(contacts));
-}
+        function hidePersonModal() {
+            document.getElementById('personModal').style.display = 'none';
+        }
 
-// Modal Funktionen
-function openModal(edit=false) {
-  document.getElementById('modal').classList.remove('hidden');
-  document.getElementById('contactForm').reset();
-  document.getElementById('previewMajlis').textContent = 'Majlis: 0.00 €';
-  document.getElementById('previewIjtema').textContent = 'Ijtema: 0.00 €';
-  document.getElementById('previewIshaat').textContent = 'Ishaat: 2.00 €';
-  document.getElementById('previewGesamt').textContent = 'Gesamt Jahr: 0.00 €';
-  editIndex = null;
-  if (!edit) document.getElementById('modalTitle').textContent = 'Kontakt hinzufügen';
-}
+        function savePerson() {
+            const index = document.getElementById('personIndex').value;
+            const person = {
+                anrede: document.getElementById('anredeSelect').value,
+                vorname: document.getElementById('vornameInput').value,
+                nachname: document.getElementById('nachnameInput').value,
+                jamaatId: document.getElementById('jamaatIdInput').value,
+                aamBudget: parseFloat(document.getElementById('aamBudgetInput').value || 0),
+                aamPaid: parseFloat(document.getElementById('aamPaidInput').value || 0),
+                jalsaBudget: parseFloat(document.getElementById('jalsaBudgetInput').value || 0),
+                jalsaPaid: parseFloat(document.getElementById('jalsaPaidInput').value || 0),
+                musi: document.getElementById('musiCheckbox').checked,
+            };
 
-function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-function updatePreview() {
-  const einkommen = document.getElementById('einkommen').value;
-  const vals = calculateValues(einkommen);
-  document.getElementById('previewMajlis').textContent = `Majlis: ${vals.majlis.toFixed(2)} €`;
-  document.getElementById('previewIjtema').textContent = `Ijtema: ${vals.ijtema.toFixed(2)} €`;
-  document.getElementById('previewIshaat').textContent = `Ishaat: ${vals.ishaat.toFixed(2)} €`;
-  document.getElementById('previewGesamt').textContent = `Gesamt Jahr: ${vals.totalYear.toFixed(2)} €`;
-}
+            person.aamRest = person.aamBudget - person.aamPaid;
+            person.jalsaRest = person.jalsaBudget - person.jalsaPaid;
+            person.totalBudget = person.aamBudget + person.jalsaBudget;
 
-// Formular speichern
-document.getElementById('contactForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const contact = {
-    name: document.getElementById('name').value,
-    vorname: document.getElementById('vorname').value,
-    einkommen: document.getElementById('einkommen').value,
-    musi: document.getElementById('musi').checked
-  };
-  if(editIndex !== null){ contacts[editIndex] = contact; } else { contacts.push(contact); }
-  renderTable();
-  closeModal();
-});
+            if (index === '') {
+                people.push(person);
+            } else {
+                people[index] = person;
+            }
 
-// Edit
-function editContact(index){
-  const c = contacts[index];
-  openModal(true);
-  document.getElementById('modalTitle').textContent = 'Kontakt bearbeiten';
-  document.getElementById('name').value = c.name;
-  document.getElementById('vorname').value = c.vorname;
-  document.getElementById('einkommen').value = c.einkommen;
-  document.getElementById('musi').checked = c.musi;
-  updatePreview();
-  editIndex = index;
-}
+            renderTable();
+            hidePersonModal();
+        }
 
-// Detail Modal
-function openDetailModal(index){
-  detailIndex = index;
-  const c = contacts[index];
-  const vals = calculateValues(c.einkommen);
-  const detail = `
-    <p><b>Name:</b> ${c.name}</p>
-    <p><b>Vorname:</b> ${c.vorname}</p>
-    <p><b>Majlis (Monat):</b> ${vals.majlis.toFixed(2)} €</p>
-    <p><b>Ijtema (Monat):</b> ${vals.ijtema.toFixed(2)} €</p>
-    <p><b>Ishaat (Monat):</b> ${vals.ishaat.toFixed(2)} €</p>
-    <p><b>Gesamter Restbetrag:</b> ${vals.totalYear.toFixed(2)} €</p>`;
-  document.getElementById('detailContent').innerHTML = detail;
-  document.getElementById('detailModal').classList.remove('hidden');
-}
-function closeDetailModal(){ document.getElementById('detailModal').classList.add('hidden'); }
+        function renderTable() {
+            const tableBody = document.querySelector("#peopleTable tbody");
+            tableBody.innerHTML = '';
+            
+            people.forEach((p, i) => {
+                const newRow = tableBody.insertRow();
+                newRow.innerHTML = `
+                    <td>${p.jamaatId}</td>
+                    <td>${p.vorname}</td>
+                    <td>${p.nachname}</td>
+                    <td>${p.totalBudget}</td>
+                    <td>${p.aamBudget}</td>
+                    <td>${p.aamPaid}</td>
+                    <td>${p.jalsaBudget}</td>
+                    <td>${p.jalsaPaid}</td>
+                    <td>${p.musi ? "✔️" : "❌"}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editPerson(${i})">Bearbeiten</button>
+                        <button class="delete-btn" onclick="deletePerson(${i})">Löschen</button>
+                        <button onclick="showDetailModal(${i})">Details</button>
+                    </td>
+                `;
+            });
+        }
 
-// Löschen Modal
-function openDeleteModal(index){ 
-  deleteIndex = index; 
-  document.getElementById('deleteModal').classList.remove('hidden'); 
-}
-function closeDeleteModal(){ document.getElementById('deleteModal').classList.add('hidden'); }
-document.getElementById('confirmDeleteBtn').addEventListener('click', ()=>{
-  contacts.splice(deleteIndex,1);
-  renderTable();
-  closeDeleteModal();
-});
+        function editPerson(index) {
+            const p = people[index];
+            document.getElementById('modalTitle').innerText = 'Person bearbeiten';
+            document.getElementById('personIndex').value = index;
+            document.getElementById('anredeSelect').value = p.anrede;
+            document.getElementById('vornameInput').value = p.vorname;
+            document.getElementById('nachnameInput').value = p.nachname;
+            document.getElementById('jamaatIdInput').value = p.jamaatId;
+            document.getElementById('aamBudgetInput').value = p.aamBudget;
+            document.getElementById('aamPaidInput').value = p.aamPaid;
+            document.getElementById('jalsaBudgetInput').value = p.jalsaBudget;
+            document.getElementById('jalsaPaidInput').value = p.jalsaPaid;
+            document.getElementById('musiCheckbox').checked = p.musi;
+            document.getElementById('personModal').style.display = 'flex';
+        }
 
-// Alles löschen Modal Funktionen
-function openClearAllModal() {
-  document.getElementById('clearAllModal').classList.remove('hidden');
-}
+        function deletePerson(index) {
+            if (confirm('Sind Sie sicher, dass Sie diesen Eintrag löschen möchten?')) {
+                people.splice(index, 1);
+                renderTable();
+            }
+        }
 
-function closeClearAllModal() {
-  document.getElementById('clearAllModal').classList.add('hidden');
-}
+        function showDetailModal(index) {
+            const p = people[index];
+            const detailModal = document.getElementById("detailModal");
+            const detailTitle = document.getElementById("detailTitle");
+            const detailContent = document.getElementById("detailContent");
 
-document.getElementById('confirmClearAllBtn').addEventListener('click', () => {
-  contacts = []; // Leert das Array
-  renderTable(); // Rendert die leere Tabelle
-  closeClearAllModal();
-});
+            detailTitle.innerText = `Detailansicht: ${p.vorname} ${p.nachname}`;
+            
+            const formattedAamRest = Math.abs(p.aamRest);
+            const formattedJalsaRest = Math.abs(p.jalsaRest);
 
+            detailContent.innerHTML = `
+                <div class="detail-item"><b>Jamaat-ID:</b> <span>${p.jamaatId}</span></div>
+                <div class="detail-header">
+                    <span>Kategorie</span>
+                    <span>Budget</span>
+                    <span>Bezahlt</span>
+                    <span>Rest</span>
+                </div>
+                <div class="detail-item">
+                    <b>AAM/WASIYYAT:</b>
+                    <span>${p.aamBudget} €</span>
+                    <span>${p.aamPaid} €</span>
+                    <span style="color:${p.aamRest < 0 ? 'green' : 'red'};">${formattedAamRest} €</span>
+                </div>
+                <div class="detail-item">
+                    <b>JALSA SALANA:</b>
+                    <span>${p.jalsaBudget} €</span>
+                    <span>${p.jalsaPaid} €</span>
+                    <span style="color:${p.jalsaRest < 0 ? 'green' : 'red'};">${formattedJalsaRest} €</span>
+                </div>
+                <div class="detail-item"><b>Musi:</b> <span>${p.musi ? "Ja" : "Nein"}</span></div>
+                <button onclick="exportSinglePDF(${index})">Export als PDF</button>
+            `;
+            detailModal.style.display = 'flex';
+        }
+        
+        function hideDetailModal() {
+            document.getElementById("detailModal").style.display = 'none';
+        }
 
-// PDF Export für Details
-function exportDetailPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const c = contacts[detailIndex];
-  const vals = calculateValues(c.einkommen);
-  
-  // Header
-  doc.setFontSize(18);
-  doc.text(`Majlis Ansarullah Chanda Details für ${c.vorname} ${c.name}`, 14, 20);
-  
-  const tableData = [
-    ["Name", `${c.vorname} ${c.name}`],
-    ["Monatseinkommen", `${c.einkommen} €`],
-    ["Majlis (monatlich)", `${vals.majlis.toFixed(2)} €`],
-    ["Ijtema (monatlich)", `${vals.ijtema.toFixed(2)} €`],
-    ["Ishaat (jährlich)", `${vals.ishaat.toFixed(2)} €`],
-    ["Gesamt Jahr", `${vals.totalYear.toFixed(2)} €`],
-  ];
+        function exportSinglePDF(index) {
+            const p = people[index];
+            const anredeText = (p.anrede === 'L') ? 'Frau' : 'Herr';
+            
+            const doc = new jsPDF();
+            doc.setFontSize(18);
+            
+            doc.text(`Budget-Übersicht für ${anredeText} ${p.vorname} ${p.nachname} (Jamaat-ID: ${p.jamaatId})`, 105, 20, null, null, 'center');
 
-  doc.autoTable({
-    head: [['Feld', 'Wert']],
-    body: tableData,
-    startY: 30,
-    theme: 'striped',
-    headStyles: { fillColor: [52, 73, 94] }
-  });
+            const tableData = [
+                ['Kategorie', 'Budget (€)', 'Bezahlt (€)', 'Rest (€)'],
+                ['AAM/WASIYYAT', p.aamBudget, p.aamPaid, p.aamRest],
+                ['JALSA SALANA', p.jalsaBudget, p.jalsaPaid, p.jalsaRest],
+            ];
 
-  doc.save('Kontakt_Detail.pdf');
-}
+            doc.autoTable({
+                startY: 40,
+                head: [tableData[0]],
+                body: tableData.slice(1),
+                theme: 'grid',
+                styles: { halign: 'center', fontSize: 10 },
+                headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255] },
+                alternateRowStyles: { fillColor: [245, 245, 245] }
+            });
 
-function exportAllPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  
-  // Header
-  doc.setFontSize(18);
-  doc.text("AMJ – Ansarullah Kontakte", 14, 20);
-  
-  // Table Data
-  const tableData = contacts.map(c => {
-    const vals = calculateValues(c.einkommen);
-    const musi = c.musi ? 'Ja' : 'Nein';
-    return [
-      c.name, 
-      c.vorname, 
-      c.einkommen, 
-      vals.majlis.toFixed(2), 
-      vals.ijtema.toFixed(2), 
-      vals.ishaat.toFixed(2), 
-      vals.totalYear.toFixed(2), 
-      musi
-    ];
-  });
+            const finalY = doc.autoTable.previous.finalY;
+            
+            let totalCombined = 0;
+            if (p.aamRest > 0) totalCombined += p.aamRest;
+            if (p.jalsaRest > 0) totalCombined += p.jalsaRest;
+            
+            doc.setFontSize(12);
+            doc.setTextColor(44, 62, 80);
+            doc.text(`Sie haben noch einen Rest von ${totalCombined} €`, 14, finalY + 15);
+            
+            doc.setFontSize(12);
+            doc.text(`Musi: ${p.musi ? 'Ja' : 'Nein'}`, 14, finalY + 25);
+            doc.text(`Generiert am: ${new Date().toLocaleDateString('de-DE')}`, 14, finalY + 35);
 
-  // Table Headers
-  const tableHeaders = [
-    ["Name", "Vorname", "Einkommen (€)", "Majlis (€)", "Ijtema (€)", "Ishaat (€)", "Gesamt Jahr (€)", "Musi"]
-  ];
+            doc.save(`${p.vorname}_${p.nachname}_Budgetbericht.pdf`);
+        }
 
-  // Generate Table using autoTable plugin
-  doc.autoTable({
-    head: tableHeaders,
-    body: tableData,
-    startY: 30,
-    theme: 'striped',
-    headStyles: { fillColor: [52, 73, 94] },
-    columnStyles: {
-        2: { halign: 'right' }, 
-        3: { halign: 'right' },
-        4: { halign: 'right' },
-        5: { halign: 'right' },
-        6: { halign: 'right' }
-    }
-  });
+        function exportTotalPDF() {
+            const doc = new jsPDF();
+            doc.setFontSize(22);
+            doc.text("Gesamtübersicht Budget", 105, 20, null, null, 'center');
 
-  doc.save('Kontakte_Gesamt.pdf');
-}
+            let totalCombined = 0;
+            people.forEach(p => {
+                if (p.aamRest > 0) {
+                    totalCombined += p.aamRest;
+                }
+                if (p.jalsaRest > 0) {
+                    totalCombined += p.jalsaRest;
+                }
+            });
+            
+            doc.setFontSize(16);
+            doc.setTextColor(44, 62, 80);
+            doc.text(`Gesamt-Restbetrag:`, 14, 50);
+            doc.setFontSize(24);
+            doc.setTextColor('red');
+            doc.text(`${totalCombined.toFixed(2)} €`, 14, 65);
 
-// CSV Import
-function importCSV(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e){
-    const text = e.target.result;
-    const rows = text.split('\n').filter(r=>r.trim()!=='');
-    rows.forEach((row,i)=>{
-      if(i===0) return; // Kopfzeile
-      const [name,vorname,einkommen,musi] = row.split(',');
-      contacts.push({name:name.trim(),vorname:vorname.trim(),einkommen:einkommen.trim(),musi:musi.trim().toLowerCase()==='true'});
-    });
-    renderTable();
-  }
-  reader.readAsText(file);
-}
+            doc.save("Gesamt_Budget_Uebersicht.pdf");
+        }
 
-// Initial render
-renderTable();
-</script>
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const rows = text.trim().split('\n').map(row => row.split(','));
+                
+                const headers = rows[0].map(h => h.trim());
+                const dataRows = rows.slice(1);
+
+                const headerMap = {
+                    'Jamaat-ID': 'jamaatId',
+                    'Vorname': 'vorname',
+                    'Nachname': 'nachname',
+                    'AAM/WASIYYAT': 'aamBudget',
+                    'AAM/WASIYYAT_Bezahlt': 'aamPaid',
+                    'JALSA_SALANA': 'jalsaBudget',
+                    'JALSA_SALANA_Bezahlt': 'jalsaPaid',
+                    'Musi': 'musi'
+                };
+
+                let importedPeople = [];
+                dataRows.forEach(row => {
+                    let personData = {};
+                    row.forEach((value, i) => {
+                        const header = headers[i];
+                        const key = headerMap[header];
+                        if (key) {
+                            if (key.includes('Budget') || key.includes('Paid')) {
+                                personData[key] = parseFloat(value) || 0;
+                            } else if (key === 'musi') {
+                                personData[key] = (value.trim() === '1');
+                            } else {
+                                personData[key] = value.trim();
+                            }
+                        }
+                    });
+
+                    personData.anrede = personData.anrede || 'A';
+                    personData.aamRest = personData.aamBudget - personData.aamPaid;
+                    personData.jalsaRest = personData.jalsaBudget - personData.jalsaPaid;
+                    personData.totalBudget = personData.aamBudget + personData.jalsaBudget;
+
+                    importedPeople.push(personData);
+                });
+
+                people = importedPeople;
+                renderTable();
+            };
+
+            reader.readAsText(file);
+        }
+    </script>
 </body>
 </html>
