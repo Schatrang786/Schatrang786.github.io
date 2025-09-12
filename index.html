@@ -48,7 +48,7 @@
             max-width: 1200px;
             width: 100%;
         }
-        
+
         button {
             padding: 0.75rem 1.5rem;
             border: none;
@@ -59,25 +59,25 @@
             font-weight: 600;
             transition: background-color 0.2s ease, transform 0.1s ease;
         }
-        
+
         button:hover {
             background-color: var(--secondary-color);
             transform: translateY(-2px);
         }
-        
+
         .delete-btn {
             background-color: var(--delete-color);
         }
-        
+
         .delete-btn:hover {
             background-color: #dc2626;
         }
-        
+
         .edit-btn {
             background-color: var(--edit-color);
             color: white;
         }
-        
+
         .edit-btn:hover {
             background-color: #d97706;
         }
@@ -95,7 +95,7 @@
             box-shadow: var(--shadow);
             transition: all 0.2s ease;
         }
-        
+
         #searchInput:focus {
             outline: none;
             border-color: var(--primary-color);
@@ -131,7 +131,7 @@
         tr:last-child td {
             border-bottom: none;
         }
-        
+
         tr:hover {
             background-color: var(--bg-color);
             transition: background-color 0.2s ease;
@@ -158,10 +158,21 @@
             border-radius: 1rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 90%;
-            max-width: 400px;
+            max-width: 600px;
             position: relative;
             transform: scale(0.95);
             animation: scaleIn 0.3s ease-in-out forwards;
+        }
+        
+        /* Neues Layout für das Formular */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .form-grid .full-width {
+            grid-column: 1 / -1;
         }
 
         .modal-content h3 {
@@ -173,32 +184,41 @@
         .modal-content input, .modal-content select {
             width: 100%;
             padding: 0.75rem;
-            margin-bottom: 1rem;
             border: 1px solid var(--border-color);
             border-radius: 0.5rem;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
         }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+        }
 
         .modal-content button {
             margin-top: 0.5rem;
         }
-        
+
         .detail-item {
             margin-bottom: 0.5rem;
             display: flex;
             justify-content: space-between;
             font-size: 1rem;
         }
-        
+
         .detail-item b {
             font-weight: 600;
         }
-        
+
         .detail-item span {
             font-weight: 400;
         }
-        
+
         .detail-header {
             font-weight: 600;
             display: flex;
@@ -212,14 +232,27 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
-        
+
         .editable-cell:hover {
             background-color: var(--border-color);
         }
-        
+
         .editable-cell input {
             padding: 0.5rem;
             border: 1px solid var(--primary-color);
+            border-radius: 0.5rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .pagination-controls button {
+            padding: 0.5rem 1rem;
             border-radius: 0.5rem;
         }
 
@@ -250,55 +283,80 @@
     <table>
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Jamaat-ID</th>
                 <th>Vorname</th>
                 <th>Nachname</th>
+                <th>Einkommen (€)</th>
                 <th>Gesamt Budget</th>
                 <th>AAM/WASIYYAT Budget</th>
                 <th>Bezahlt</th>
                 <th>JALSA SALANA Budget</th>
                 <th>Bezahlt</th>
                 <th>Musi</th>
+                <th>Anrede</th>
                 <th>Aktion</th>
             </tr>
         </thead>
         <tbody id="peopleTable"></tbody>
     </table>
 
+    <div class="pagination-controls">
+        <button id="prevPageBtn" onclick="prevPage()">Zurück</button>
+        <span id="pageInfo">Seite 1 von 1</span>
+        <button id="nextPageBtn" onclick="nextPage()">Weiter</button>
+    </div>
+
     <div id="personModal" class="modal">
         <div class="modal-content">
             <h3 id="modalTitle">Person hinzufügen</h3>
-            <label for="anredeSelect">Anrede:</label>
-            <select id="anredeSelect">
-                <option value="A">Herr (A)</option>
-                <option value="K">Herr (K)</option>
-                <option value="L">Frau (L)</option>
-            </select>
-            <label for="vornameInput">Vorname:</label>
-            <input type="text" id="vornameInput" placeholder="Vorname">
-            <label for="nachnameInput">Nachname:</label>
-            <input type="text" id="nachnameInput" placeholder="Nachname">
-            <label for="jamaatIdInput">Jamaat-ID:</label>
-            <input type="text" id="jamaatIdInput" placeholder="Jamaat-ID">
-            <label for="aamBudgetInput">AAM/WASIYYAT Budget (€):</label>
-            <input type="number" id="aamBudgetInput" value="0">
-            <label for="aamPaidInput">Bezahlt AAM/WASIYYAT (€):</label>
-            <input type="number" id="aamPaidInput" value="0">
-            <label for="jalsaBudgetInput">JALSA SALANA Budget (€):</label>
-            <input type="number" id="jalsaBudgetInput" value="0">
-            <label for="jalsaPaidInput">Bezahlt JALSA SALANA (€):</label>
-            <input type="number" id="jalsaPaidInput" value="0">
-            <label><input type="checkbox" id="musiCheckbox"> Ist Musi?</label>
-            <button onclick="savePerson()">Speichern</button>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="anredeSelect">Anrede:</label>
+                    <select id="anredeSelect">
+                        <option value="A">Herr (A)</option>
+                        <option value="K">Herr (K)</option>
+                        <option value="L">Frau (L)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="einkommenInput">Einkommen (€):</label>
+                    <input type="number" id="einkommenInput" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="vornameInput">Vorname:</label>
+                    <input type="text" id="vornameInput" placeholder="Vorname">
+                </div>
+                <div class="form-group">
+                    <label for="nachnameInput">Nachname:</label>
+                    <input type="text" id="nachnameInput" placeholder="Nachname">
+                </div>
+                <div class="form-group full-width">
+                    <label for="jamaatIdInput">Jamaat-ID:</label>
+                    <input type="text" id="jamaatIdInput" placeholder="Jamaat-ID">
+                </div>
+                <div class="form-group">
+                    <label for="aamBudgetInput">AAM/WASIYYAT Budget (€):</label>
+                    <input type="number" id="aamBudgetInput" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="jalsaBudgetInput">JALSA SALANA Budget (€):</label>
+                    <input type="number" id="jalsaBudgetInput" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="aamPaidInput">Bezahlt AAM/WASIYYAT (€):</label>
+                    <input type="number" id="aamPaidInput" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="jalsaPaidInput">Bezahlt JALSA SALANA (€):</label>
+                    <input type="number" id="jalsaPaidInput" value="0">
+                </div>
+                <div class="form-group full-width">
+                    <label><input type="checkbox" id="musiCheckbox"> Ist Musi?</label>
+                </div>
+            </div>
+            <button id="saveButton" onclick="savePerson()">Speichern</button>
             <button onclick="hidePersonModal()">Abbrechen</button>
-        </div>
-    </div>
-    
-    <div id="detailModal" class="modal">
-        <div class="detail-box">
-            <h3 id="detailTitle"></h3>
-            <div id="detailContent"></div>
-            <button onclick="hideDetailModal()">Schließen</button>
         </div>
     </div>
 
@@ -319,19 +377,32 @@
         </div>
     </div>
 
+    <div id="detailModal" class="modal">
+        <div class="detail-box">
+            <h3 id="detailTitle"></h3>
+            <div id="detailContent"></div>
+            <button onclick="hideDetailModal()">Schließen</button>
+        </div>
+    </div>
+
     <script>
         const { jsPDF } = window.jspdf;
         let people = [];
         let personToDeleteIndex = -1;
         let currentEditingCell = null;
+        let currentPage = 1;
+        let nextId = 1;
+        const rowsPerPage = 10;
 
         document.getElementById('csvFileInput').addEventListener('change', importCSV);
 
         function showAddPersonModal() {
             document.getElementById('modalTitle').innerText = 'Person hinzufügen';
+            document.getElementById('saveButton').innerText = 'Speichern';
             document.getElementById('anredeSelect').value = 'A';
             document.getElementById('vornameInput').value = '';
             document.getElementById('nachnameInput').value = '';
+            document.getElementById('einkommenInput').value = '0';
             document.getElementById('jamaatIdInput').value = '';
             document.getElementById('aamBudgetInput').value = '0';
             document.getElementById('aamPaidInput').value = '0';
@@ -365,19 +436,34 @@
 
         function savePerson() {
             const person = {
+                id: nextId++,
                 anrede: document.getElementById('anredeSelect').value,
                 vorname: document.getElementById('vornameInput').value,
                 nachname: document.getElementById('nachnameInput').value,
+                einkommen: parseFloat(document.getElementById('einkommenInput').value || 0),
                 jamaatId: document.getElementById('jamaatIdInput').value,
-                aamBudget: parseFloat(document.getElementById('aamBudgetInput').value || 0),
-                aamPaid: parseFloat(document.getElementById('aamPaidInput').value || 0),
-                jalsaBudget: parseFloat(document.getElementById('jalsaBudgetInput').value || 0),
-                jalsaPaid: parseFloat(document.getElementById('jalsaPaidInput').value || 0),
                 musi: document.getElementById('musiCheckbox').checked,
             };
+
+            // Neue Logik für 180 Euro
+            if (person.einkommen === 180) {
+                person.aamBudget = 180;
+                person.jalsaBudget = 0;
+                person.totalBudget = 180;
+                person.aamPaid = parseFloat(document.getElementById('aamPaidInput').value || 0);
+                person.jalsaPaid = parseFloat(document.getElementById('jalsaPaidInput').value || 0);
+            } else {
+                const budgets = chandaCalc(person.einkommen, person.musi);
+                person.aamBudget = budgets.aamBudget;
+                person.jalsaBudget = budgets.jalsaBudget;
+                person.totalBudget = (person.aamBudget || 0) + (person.jalsaBudget || 0);
+                person.aamPaid = parseFloat(document.getElementById('aamPaidInput').value || 0);
+                person.jalsaPaid = parseFloat(document.getElementById('jalsaPaidInput').value || 0);
+            }
+
             person.aamRest = Math.max(0, person.aamBudget - person.aamPaid);
             person.jalsaRest = Math.max(0, person.jalsaBudget - person.jalsaPaid);
-            person.totalBudget = (person.aamBudget || 0) + (person.jalsaBudget || 0);
+            
             people.push(person);
             renderTable();
             hidePersonModal();
@@ -395,7 +481,7 @@
         function editCell(cell, index, key, type) {
             if (currentEditingCell) return;
             currentEditingCell = cell;
-        
+
             const value = people[index][key];
             let inputElement;
 
@@ -404,6 +490,13 @@
                 inputElement.innerHTML = `
                     <option value="true" ${value ? 'selected' : ''}>✔️</option>
                     <option value="false" ${!value ? 'selected' : ''}>❌</option>
+                `;
+            } else if (key === 'anrede') {
+                inputElement = document.createElement('select');
+                inputElement.innerHTML = `
+                    <option value="A" ${value === 'A' ? 'selected' : ''}>A</option>
+                    <option value="K" ${value === 'K' ? 'selected' : ''}>K</option>
+                    <option value="L" ${value === 'L' ? 'selected' : ''}>L</option>
                 `;
             } else {
                 inputElement = document.createElement('input');
@@ -430,13 +523,15 @@
                 }
             });
         }
-        
+
         function saveCell(cell, index, key, type, newValue) {
             currentEditingCell = null;
             let finalValue;
 
             if (key === 'musi') {
                 finalValue = newValue === 'true';
+            } else if (key === 'anrede') {
+                finalValue = newValue;
             } else if (type === 'number') {
                 finalValue = parseFloat(newValue.replace(',', '.')) || 0;
             } else {
@@ -449,39 +544,86 @@
             }
 
             people[index][key] = finalValue;
-
+            
             const p = people[index];
+
+            // Neue Logik für 180 Euro
+            if (p.einkommen === 180) {
+                p.aamBudget = 180;
+                p.jalsaBudget = 0;
+                p.totalBudget = 180;
+            } else {
+                if (key === 'einkommen' || key === 'musi') {
+                    const budgets = chandaCalc(p.einkommen, p.musi);
+                    p.aamBudget = budgets.aamBudget;
+                    p.jalsaBudget = budgets.jalsaBudget;
+                }
+                p.totalBudget = (p.aamBudget || 0) + (p.jalsaBudget || 0);
+            }
+
             p.aamRest = Math.max(0, (p.aamBudget || 0) - (p.aamPaid || 0));
             p.jalsaRest = Math.max(0, (p.jalsaBudget || 0) - (p.jalsaPaid || 0));
-            p.totalBudget = (p.aamBudget || 0) + (p.jalsaBudget || 0);
-
+            
             renderTable();
         }
 
         function renderTable() {
             const tableBody = document.getElementById("peopleTable");
             tableBody.innerHTML = '';
-            
-            people.forEach((p, i) => {
+
+            const totalPages = Math.ceil(people.length / rowsPerPage);
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const paginatedPeople = people.slice(start, end);
+
+            paginatedPeople.forEach((p, i) => {
+                const originalIndex = start + i;
                 const newRow = tableBody.insertRow();
                 newRow.innerHTML = `
-                    <td class="editable-cell" onclick="editCell(this, ${i}, 'jamaatId', 'text')">${p.jamaatId}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${i}, 'vorname', 'text')">${p.vorname}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${i}, 'nachname', 'text')">${p.nachname}</td>
+                    <td>${originalIndex + 1}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'jamaatId', 'text')">${p.jamaatId}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'vorname', 'text')">${p.vorname}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'nachname', 'text')">${p.nachname}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'einkommen', 'number')">${(p.einkommen || 0).toFixed(2)}</td>
                     <td>${(p.totalBudget || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${i}, 'aamBudget', 'number')">${(p.aamBudget || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${i}, 'aamPaid', 'number')">${(p.aamPaid || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${i}, 'jalsaBudget', 'number')">${(p.jalsaBudget || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${i}, 'jalsaPaid', 'number')">${(p.jalsaPaid || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${i}, 'musi', 'checkbox')">${p.musi ? "✔️" : "❌"}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'aamBudget', 'number')">${(p.aamBudget || 0).toFixed(2)}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'aamPaid', 'number')">${(p.aamPaid || 0).toFixed(2)}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'jalsaBudget', 'number')">${(p.jalsaBudget || 0).toFixed(2)}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'jalsaPaid', 'number')">${(p.jalsaPaid || 0).toFixed(2)}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'musi', 'checkbox')">${p.musi ? "✔️" : "❌"}</td>
+                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'anrede', 'text')">${p.anrede}</td>
                     <td>
-                        <button class="delete-btn" onclick="showDeleteModal(${i})">Löschen</button>
-                        <button class="edit-btn" onclick="showDetailModal(${i})">Details</button>
+                        <button class="delete-btn" onclick="showDeleteModal(${originalIndex})">Löschen</button>
+                        <button class="edit-btn" onclick="showDetailModal(${originalIndex})">Details</button>
                     </td>
                 `;
             });
+
+            updatePaginationControls();
         }
-        
+
+        function updatePaginationControls() {
+            const totalPages = Math.ceil(people.length / rowsPerPage);
+            document.getElementById('pageInfo').innerText = `Seite ${currentPage} von ${totalPages > 0 ? totalPages : 1}`;
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages || people.length === 0;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(people.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        }
+
         function showDetailModal(index) {
             const p = people[index];
             const detailModal = document.getElementById("detailModal");
@@ -490,9 +632,11 @@
 
             detailTitle.innerText = `Detailansicht: ${p.vorname} ${p.nachname}`;
             
-            const aamBudget = parseFloat(p.aamBudget) || 0;
+            // Logik für den 180 € Fall, um die Anzeige anzupassen
+            const aamBudget = (p.einkommen === 180) ? 180 : (p.aamBudget || 0);
+            const jalsaBudget = (p.einkommen === 180) ? 0 : (p.jalsaBudget || 0);
+
             const aamPaid = parseFloat(p.aamPaid) || 0;
-            const jalsaBudget = parseFloat(p.jalsaBudget) || 0;
             const jalsaPaid = parseFloat(p.jalsaPaid) || 0;
 
             const aamRest = Math.max(0, aamBudget - aamPaid);
@@ -502,7 +646,9 @@
             const jalsaColor = (jalsaBudget - jalsaPaid) < 0 ? 'green' : 'red';
             
             detailContent.innerHTML = `
+                <div class="detail-item"><b>ID:</b> <span>${p.id}</span></div>
                 <div class="detail-item"><b>Jamaat-ID:</b> <span>${p.jamaatId}</span></div>
+                <div class="detail-item"><b>Einkommen:</b> <span>${(p.einkommen || 0).toFixed(2)} €</span></div>
                 <div class="detail-header">
                     <span>Kategorie</span>
                     <span>Budget</span>
@@ -522,11 +668,12 @@
                     <span style="color:${jalsaColor};"><b>${jalsaRest.toFixed(2)} €</b></span>
                 </div>
                 <div class="detail-item"><b>Musi:</b> <span>${p.musi ? "Ja" : "Nein"}</span></div>
+                <div class="detail-item"><b>Anrede:</b> <span>${p.anrede}</span></div>
                 <button onclick="exportSinglePDF(${index})">Export als PDF</button>
             `;
             detailModal.style.display = 'flex';
         }
-        
+
         function hideDetailModal() {
             document.getElementById("detailModal").style.display = 'none';
         }
@@ -543,13 +690,19 @@
             doc.setTextColor(40, 40, 40);
             doc.text(`Wassiyat: ${p.musi ? 'Ja' : 'Nein'}`, 172.5, 31, null, null, 'center');
 
-            const aamRest = Math.max(0, (p.aamBudget || 0) - (p.aamPaid || 0));
-            const jalsaRest = Math.max(0, (p.jalsaBudget || 0) - (p.jalsaPaid || 0));
+            // Logik für den 180 € Fall, um den Export anzupassen
+            const aamBudget = (p.einkommen === 180) ? 180 : (p.aamBudget || 0);
+            const jalsaBudget = (p.einkommen === 180) ? 0 : (p.jalsaBudget || 0);
+            const aamPaid = parseFloat(p.aamPaid) || 0;
+            const jalsaPaid = parseFloat(p.jalsaPaid) || 0;
             
+            const aamRest = Math.max(0, aamBudget - aamPaid);
+            const jalsaRest = Math.max(0, jalsaBudget - jalsaPaid);
+
             const tableData = [
                 ['Kategorie', 'Budget (€)', 'Bezahlt (€)', 'Rest (€)'],
-                ['AAM/WASIYYAT', (p.aamBudget || 0).toFixed(2), (p.aamPaid || 0).toFixed(2), aamRest.toFixed(2)],
-                ['JALSA SALANA', (p.jalsaBudget || 0).toFixed(2), (p.jalsaPaid || 0).toFixed(2), jalsaRest.toFixed(2)],
+                ['AAM/WASIYYAT', aamBudget.toFixed(2), aamPaid.toFixed(2), aamRest.toFixed(2)],
+                ['JALSA SALANA', jalsaBudget.toFixed(2), jalsaPaid.toFixed(2), jalsaRest.toFixed(2)],
             ];
             doc.autoTable({
                 startY: 40,
@@ -561,14 +714,14 @@
                 alternateRowStyles: { fillColor: [245, 245, 245] },
                 didDrawCell: data => {
                     if (data.row.index === 0 && data.column.index === 3) {
-                        if (((p.aamBudget || 0) - (p.aamPaid || 0)) < 0) {
-                            doc.setTextColor(0, 128, 0); // Grün für Überschuss
+                        if (((aamBudget || 0) - (aamPaid || 0)) < 0) {
+                            doc.setTextColor(0, 128, 0);
                         } else {
-                            doc.setTextColor(255, 0, 0); // Rot für offenen Betrag
+                            doc.setTextColor(255, 0, 0);
                         }
                     }
                     if (data.row.index === 1 && data.column.index === 3) {
-                         if (((p.jalsaBudget || 0) - (p.jalsaPaid || 0)) < 0) {
+                         if (((jalsaBudget || 0) - (jalsaPaid || 0)) < 0) {
                             doc.setTextColor(0, 128, 0);
                         } else {
                             doc.setTextColor(255, 0, 0);
@@ -577,8 +730,8 @@
                 }
             });
             const finalY = doc.autoTable.previous.finalY;
-            const totalBudget = (p.aamBudget || 0) + (p.jalsaBudget || 0);
-            const totalPaid = (p.aamPaid || 0) + (p.jalsaPaid || 0);
+            const totalBudget = (p.totalBudget || 0);
+            const totalPaid = aamPaid + jalsaPaid;
             const totalRest = aamRest + jalsaRest;
             const summaryData = [
                 ['Gesamtbudget (€)', 'Insgesamt bezahlt (€)', 'Gesamter Restbetrag (€)'],
@@ -612,6 +765,24 @@
             doc.save(`${p.vorname}_${p.nachname}_Budgetbericht.pdf`);
         }
 
+        function chandaCalc(income, isMusi) {
+            let aamBudget = 0;
+            let jalsaBudget = 0;
+
+            if (isMusi) {
+                aamBudget = (income / 10) * 12;
+                jalsaBudget = income / 10;
+            } else {
+                aamBudget = 0;
+                jalsaBudget = income / 10;
+            }
+
+            return {
+                aamBudget: aamBudget,
+                jalsaBudget: jalsaBudget
+            };
+        }
+
         function importCSV(event) {
             const file = event.target.files[0];
             if (!file) {
@@ -641,9 +812,11 @@
                     return h.trim();
                 });
                 const headerMap = {
+                    'ID': 'id',
                     'Jamaat-ID': 'jamaatId',
                     'Vorname': 'vorname',
                     'Nachname': 'nachname',
+                    'Einkommen': 'einkommen',
                     'AAM/WASIYYAT': 'aamBudget',
                     'AAM/WASIYYAT Budget': 'aamBudget',
                     'Bezahlt': 'aamPaid',
@@ -652,7 +825,9 @@
                     'JALSA_SALANA': 'jalsaBudget',
                     'JALSA SALANA Budget': 'jalsaBudget',
                     'Bezahlt_JALSA': 'jalsaPaid',
-                    'Musi': 'musi'
+                    'Musi': 'musi',
+                    'Tanzeem': 'anrede',
+                    'Anrede': 'anrede',
                 };
                 const dataRows = rows.slice(1);
                 let importedPeople = [];
@@ -663,7 +838,7 @@
                         const key = headerMap[header];
                         const value = row[i]?.trim() ?? '';
                         if (key) {
-                            if (key.includes('Budget') || key.includes('Paid')) {
+                            if (key.includes('Budget') || key.includes('Paid') || key === 'einkommen') {
                                 personData[key] = parseFloat(value.replace(',', '.')) || 0;
                             } else if (key === 'musi') {
                                 personData[key] = value.toLowerCase() === 'true' || value === '1' || value.toLowerCase() === 'ja' || value === '✅';
@@ -674,15 +849,26 @@
                         }
                     });
                     if (hasValidData) {
-                        personData.anrede = 'A';
+                        personData.id = nextId++;
+                        // Neue Logik für 180 Euro beim Import
+                        if (personData.einkommen === 180) {
+                            personData.aamBudget = 180;
+                            personData.jalsaBudget = 0;
+                            personData.totalBudget = 180;
+                        } else {
+                            const budgets = chandaCalc(personData.einkommen, personData.musi);
+                            personData.aamBudget = budgets.aamBudget;
+                            personData.jalsaBudget = budgets.jalsaBudget;
+                            personData.totalBudget = (personData.aamBudget || 0) + (personData.jalsaBudget || 0);
+                        }
                         personData.aamRest = Math.max(0, (personData.aamBudget || 0) - (personData.aamPaid || 0));
                         personData.jalsaRest = Math.max(0, (personData.jalsaBudget || 0) - (personData.jalsaPaid || 0));
-                        personData.totalBudget = (personData.aamBudget || 0) + (personData.jalsaBudget || 0);
                         importedPeople.push(personData);
                     }
                 });
                 if (importedPeople.length > 0) {
                     people = importedPeople;
+                    currentPage = 1;
                     renderTable();
                     showImportSuccessModal(`Erfolgreich ${people.length} Einträge importiert.`);
                 } else {
@@ -695,55 +881,67 @@
         function searchTable() {
             const input = document.getElementById("searchInput");
             const filter = input.value.toLowerCase();
-            const tableBody = document.getElementById("peopleTable");
-            const tr = tableBody.getElementsByTagName("tr");
-            
-            for (let i = 0; i < tr.length; i++) {
+            const rows = document.getElementById("peopleTable").getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
                 let found = false;
-                const td = tr[i].getElementsByTagName("td");
-                for (let j = 0; j < td.length; j++) {
-                    if (j === 3 || j === 9) continue; 
-                    const cellText = td[j].textContent || td[j].innerText;
+                const cells = rows[i].getElementsByTagName("td");
+                for (let j = 0; j < cells.length; j++) {
+                    const cellText = cells[j].textContent || cells[j].innerText;
                     if (cellText.toLowerCase().indexOf(filter) > -1) {
                         found = true;
                         break;
                     }
                 }
                 if (found) {
-                    tr[i].style.display = "";
+                    rows[i].style.display = "";
                 } else {
-                    tr[i].style.display = "none";
+                    rows[i].style.display = "none";
                 }
             }
         }
-
-        window.onload = function() {
-            renderTable();
-        };
-
+        
         function exportTotalPDF() {
-            const doc = new jsPDF();
+            const doc = new jsPDF('p', 'mm', 'a4');
             doc.setFontSize(18);
-            doc.text("Gesamtübersicht Chanda - Jahr 2026", 105, 20, null, null, 'center');
-            const tableColumn = ["Jamaat-ID", "Vorname", "Nachname", "Gesamt Budget (€)", "Bezahlt AAM (€)", "Bezahlt JALSA (€)", "Musi"];
-            const tableRows = people.map(p => [
-                p.jamaatId,
-                p.vorname,
-                p.nachname,
-                (p.totalBudget || 0).toFixed(2),
-                (p.aamPaid || 0).toFixed(2),
-                (p.jalsaPaid || 0).toFixed(2),
-                p.musi ? "Ja" : "Nein"
-            ]);
+            doc.text(`Gesamtübersicht – Budget App`, 105, 20, null, null, 'center');
+
+            const totalAamBudget = people.reduce((sum, p) => sum + (p.aamBudget || 0), 0);
+            const totalAamPaid = people.reduce((sum, p) => sum + (p.aamPaid || 0), 0);
+            const totalJalsaBudget = people.reduce((sum, p) => sum + (p.jalsaBudget || 0), 0);
+            const totalJalsaPaid = people.reduce((sum, p) => sum + (p.jalsaPaid || 0), 0);
+
+            const totalAamRest = totalAamBudget - totalAamPaid;
+            const totalJalsaRest = totalJalsaBudget - totalJalsaPaid;
+            const totalBudget = people.reduce((sum, p) => sum + (p.totalBudget || 0), 0);
+            const totalPaid = totalAamPaid + totalJalsaPaid;
+            const totalRest = totalAamRest + totalJalsaRest;
+
+            const tableData = [
+                ['Kategorie', 'Budget (€)', 'Bezahlt (€)', 'Rest (€)'],
+                ['AAM/WASIYYAT', totalAamBudget.toFixed(2), totalAamPaid.toFixed(2), totalAamRest.toFixed(2)],
+                ['JALSA SALANA', totalJalsaBudget.toFixed(2), totalJalsaPaid.toFixed(2), totalJalsaRest.toFixed(2)],
+            ];
+
             doc.autoTable({
                 startY: 30,
-                head: [tableColumn],
-                body: tableRows,
+                head: [tableData[0]],
+                body: tableData.slice(1),
                 theme: 'grid',
                 styles: { halign: 'center', fontSize: 10 },
-                headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255] }
+                headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255] },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
             });
-            doc.save("Gesamtübersicht_Budget.pdf");
+
+            const summaryY = doc.autoTable.previous.finalY;
+            doc.setFillColor(230, 240, 255);
+            doc.rect(12, summaryY + 8, 185, 12, 'F');
+            doc.setFontSize(12);
+            doc.setTextColor(40, 40, 40);
+            doc.text(`Der insgesamt offene Betrag beträgt ${totalRest.toFixed(2)} €.`, 105, summaryY + 16, null, null, 'center');
+
+            doc.text(`Stand: ${new Date().toLocaleDateString('de-DE')}`, 14, summaryY + 30);
+            doc.save(`Gesamt_Budgetbericht.pdf`);
         }
     </script>
 </body>
