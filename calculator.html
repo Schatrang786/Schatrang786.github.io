@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>A M J Chanda Calculator</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/calculator.css">
+</head>
+<body>
+
+<div class="amj-header">
+    <h1>AMJ - Chanda Berechnung</h1>
+    <hr>
+</div>
+
+<div class="container">
+    <div class="main-content">
+        <div class="box">
+            <h3>Chanda Calculator</h3>
+
+            <div class="control-group">
+                <label class="control-label" for="txtincome">Monatliches Einkommen (€):</label>
+                <div class="controls">
+                    <input id="txtincome" type="text" onkeyup="chandacalc()" onkeypress="return isNumberKey(event)" maxlength="7">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">Moosi Anteil:</label>
+                <div class="controls">
+                    <select id="hdWassiyat" onchange="chandacalc()">
+                        <option value="3">1/3</option>
+                        <option value="4">1/4</option>
+                        <option value="5">1/5</option>
+                        <option value="6">1/6</option>
+                        <option value="7">1/7</option>
+                        <option value="8">1/8</option>
+                        <option value="9">1/9</option>
+                        <option value="10" selected>1/10</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Moosi</span>
+                <div class="controls">
+                    <span id="moosi" class="badge badge-success">0.00</span>
+                    <span class="badge badge-inverse">€</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Chanda Aam</span>
+                <div class="controls">
+                    <span id="chaam" class="badge badge-info">0.00</span>
+                    <span class="badge badge-inverse">€</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Jalsa Salana</span>
+                <div class="controls">
+                    <span id="jalsa" class="badge badge-warning">0.00</span>
+                    <span class="badge badge-inverse">€</span>
+                </div>
+            </div>
+
+            <button class="btn-warning" onclick="resetCalculator()">Zurücksetzen</button>
+        </div>
+    </div>
+
+    <div class="overview-container">
+        <div class="box">
+            <h3>📅 Übersicht – Chanda Aam</h3>
+            <div class="summary-row">
+                <span class="summary-label">Jährlich:</span>
+                <span id="chaamYear">0.00 €</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Jalsa Salana Jährlich:</span>
+                <span id="jalsaYear">0.00 €</span>
+            </div>
+            <hr>
+            <div class="summary-row">
+                <span class="summary-label">Gesamt Aam:</span>
+                <span id="totalAam" style="color: green; font-weight: bold;">0.00 €</span>
+            </div>
+        </div>
+
+        <div class="box">
+            <h3>📅 Übersicht – Moosi</h3>
+            <div class="summary-row">
+                <span class="summary-label">Jährlich:</span>
+                <span id="moosiYear">0.00 €</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Jalsa Salana Jährlich:</span>
+                <span id="moosiJalsaYear">0.00 €</span>
+            </div>
+            <hr>
+            <div class="summary-row">
+                <span class="summary-label">Gesamt Moosi:</span>
+                <span id="totalMoosi" style="color: green; font-weight: bold;">0.00 €</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/calculator.js"></script>
+
+</body>
+</html>
