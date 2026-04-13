@@ -2,947 +2,112 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Budget App</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.16/jspdf.plugin.autotable.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #3b82f6;
-            --secondary-color: #1e40af;
-            --text-color: #374151;
-            --bg-color: #f9fafb;
-            --card-bg: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            --delete-color: #ef4444;
-            --edit-color: #f59e0b;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-            min-height: 100vh;
-        }
-
-        h2 {
-            color: var(--secondary-color);
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-        }
-
-        .action-buttons {
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            max-width: 1200px;
-            width: 100%;
-        }
-
-        button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            background-color: var(--primary-color);
-            color: white;
-            cursor: pointer;
-            border-radius: 9999px;
-            font-weight: 600;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-        }
-
-        button:hover {
-            background-color: var(--secondary-color);
-            transform: translateY(-2px);
-        }
-
-        .delete-btn {
-            background-color: var(--delete-color);
-        }
-
-        .delete-btn:hover {
-            background-color: #dc2626;
-        }
-
-        .edit-btn {
-            background-color: var(--edit-color);
-            color: white;
-        }
-
-        .edit-btn:hover {
-            background-color: #d97706;
-        }
-
-        .search-container {
-            margin-bottom: 2rem;
-        }
-
-        #searchInput {
-            width: 300px;
-            padding: 0.75rem 1.25rem;
-            border: 1px solid var(--border-color);
-            border-radius: 9999px;
-            font-family: 'Poppins', sans-serif;
-            box-shadow: var(--shadow);
-            transition: all 0.2s ease;
-        }
-
-        #searchInput:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-
-        table {
-            width: 100%;
-            max-width: 1200px;
-            border-collapse: separate;
-            border-spacing: 0;
-            background-color: var(--card-bg);
-            box-shadow: var(--shadow);
-            border-radius: 0.75rem;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        th, td {
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            background-color: var(--secondary-color);
-            color: white;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.875rem;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover {
-            background-color: var(--bg-color);
-            transition: background-color 0.2s ease;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .modal-content, .detail-box {
-            background-color: var(--card-bg);
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-            transform: scale(0.95);
-            animation: scaleIn 0.3s ease-in-out forwards;
-        }
-        
-        /* Neues Layout für das Formular */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        
-        .form-grid .full-width {
-            grid-column: 1 / -1;
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
-            font-size: 1.5rem;
-            color: var(--secondary-color);
-        }
-
-        .modal-content input, .modal-content select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-        
-        .form-group label {
-            font-weight: 600;
-        }
-
-        .modal-content button {
-            margin-top: 0.5rem;
-        }
-
-        .detail-item {
-            margin-bottom: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            font-size: 1rem;
-        }
-
-        .detail-item b {
-            font-weight: 600;
-        }
-
-        .detail-item span {
-            font-weight: 400;
-        }
-
-        .detail-header {
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .editable-cell {
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .editable-cell:hover {
-            background-color: var(--border-color);
-        }
-
-        .editable-cell input {
-            padding: 0.5rem;
-            border: 1px solid var(--primary-color);
-            border-radius: 0.5rem;
-        }
-
-        .pagination-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .pagination-controls button {
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes scaleIn {
-            from { transform: scale(0.95); }
-            to { transform: scale(1); }
-        }
-    </style>
+    <title>A M J Chanda Calculator</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/calculator.css">
 </head>
 <body>
-    <h2>Budget Übersicht</h2>
-    <div class="action-buttons">
-        <button type="button" onclick="showAddPersonModal()">+ Person hinzufügen</button>
-        <button type="button" onclick="exportTotalPDF()">Gesamtsummen als PDF exportieren</button>
-        <button type="button" onclick="document.getElementById('csvFileInput').click()">CSV importieren</button>
-        <input type="file" id="csvFileInput" style="display: none;" accept=".csv">
-    </div>
 
-    <div class="search-container">
-        <input type="text" id="searchInput" oninput="searchTable()" placeholder="Suchen...">
-    </div>
+<div class="amj-header">
+    <h1>AMJ - Chanda Berechnung</h1>
+    <hr>
+</div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Jamaat-ID</th>
-                <th>Vorname</th>
-                <th>Nachname</th>
-                <th>Einkommen (€)</th>
-                <th>Gesamt Budget</th>
-                <th>AAM/WASIYYAT Budget</th>
-                <th>Bezahlt</th>
-                <th>JALSA SALANA Budget</th>
-                <th>Bezahlt</th>
-                <th>Musi</th>
-                <th>Anrede</th>
-                <th>Aktion</th>
-            </tr>
-        </thead>
-        <tbody id="peopleTable"></tbody>
-    </table>
+<div class="container">
+    <div class="main-content">
+        <div class="box">
+            <h3>Chanda Calculator</h3>
 
-    <div class="pagination-controls">
-        <button id="prevPageBtn" onclick="prevPage()">Zurück</button>
-        <span id="pageInfo">Seite 1 von 1</span>
-        <button id="nextPageBtn" onclick="nextPage()">Weiter</button>
-    </div>
-
-    <div id="personModal" class="modal">
-        <div class="modal-content">
-            <h3 id="modalTitle">Person hinzufügen</h3>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="anredeSelect">Anrede:</label>
-                    <select id="anredeSelect">
-                        <option value="A">Herr (A)</option>
-                        <option value="K">Herr (K)</option>
-                        <option value="L">Frau (L)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="einkommenInput">Einkommen (€):</label>
-                    <input type="number" id="einkommenInput" value="0">
-                </div>
-                <div class="form-group">
-                    <label for="vornameInput">Vorname:</label>
-                    <input type="text" id="vornameInput" placeholder="Vorname">
-                </div>
-                <div class="form-group">
-                    <label for="nachnameInput">Nachname:</label>
-                    <input type="text" id="nachnameInput" placeholder="Nachname">
-                </div>
-                <div class="form-group full-width">
-                    <label for="jamaatIdInput">Jamaat-ID:</label>
-                    <input type="text" id="jamaatIdInput" placeholder="Jamaat-ID">
-                </div>
-                <div class="form-group">
-                    <label for="aamBudgetInput">AAM/WASIYYAT Budget (€):</label>
-                    <input type="number" id="aamBudgetInput" value="0">
-                </div>
-                <div class="form-group">
-                    <label for="jalsaBudgetInput">JALSA SALANA Budget (€):</label>
-                    <input type="number" id="jalsaBudgetInput" value="0">
-                </div>
-                <div class="form-group">
-                    <label for="aamPaidInput">Bezahlt AAM/WASIYYAT (€):</label>
-                    <input type="number" id="aamPaidInput" value="0">
-                </div>
-                <div class="form-group">
-                    <label for="jalsaPaidInput">Bezahlt JALSA SALANA (€):</label>
-                    <input type="number" id="jalsaPaidInput" value="0">
-                </div>
-                <div class="form-group full-width">
-                    <label><input type="checkbox" id="musiCheckbox"> Ist Musi?</label>
+            <div class="control-group">
+                <label class="control-label" for="txtincome">Monatliches Einkommen (€):</label>
+                <div class="controls">
+                    <input id="txtincome" type="text" onkeyup="chandacalc()" onkeypress="return isNumberKey(event)" maxlength="7">
                 </div>
             </div>
-            <button id="saveButton" onclick="savePerson()">Speichern</button>
-            <button onclick="hidePersonModal()">Abbrechen</button>
-        </div>
-    </div>
 
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <h3 id="deleteModalTitle">Eintrag löschen?</h3>
-            <p id="deleteModalMessage">Sind Sie sicher, dass Sie diesen Eintrag löschen möchten?</p>
-            <button class="delete-btn" onclick="confirmDelete()">Löschen</button>
-            <button onclick="hideDeleteModal()">Abbrechen</button>
-        </div>
-    </div>
-
-    <div id="importSuccessModal" class="modal">
-        <div class="modal-content">
-            <h3>Import abgeschlossen!</h3>
-            <p id="importSuccessMessage"></p>
-            <button onclick="hideImportSuccessModal()">OK</button>
-        </div>
-    </div>
-
-    <div id="detailModal" class="modal">
-        <div class="detail-box">
-            <h3 id="detailTitle"></h3>
-            <div id="detailContent"></div>
-            <button onclick="hideDetailModal()">Schließen</button>
-        </div>
-    </div>
-
-    <script>
-        const { jsPDF } = window.jspdf;
-        let people = [];
-        let personToDeleteIndex = -1;
-        let currentEditingCell = null;
-        let currentPage = 1;
-        let nextId = 1;
-        const rowsPerPage = 10;
-
-        document.getElementById('csvFileInput').addEventListener('change', importCSV);
-
-        function showAddPersonModal() {
-            document.getElementById('modalTitle').innerText = 'Person hinzufügen';
-            document.getElementById('saveButton').innerText = 'Speichern';
-            document.getElementById('anredeSelect').value = 'A';
-            document.getElementById('vornameInput').value = '';
-            document.getElementById('nachnameInput').value = '';
-            document.getElementById('einkommenInput').value = '0';
-            document.getElementById('jamaatIdInput').value = '';
-            document.getElementById('aamBudgetInput').value = '0';
-            document.getElementById('aamPaidInput').value = '0';
-            document.getElementById('jalsaBudgetInput').value = '0';
-            document.getElementById('jalsaPaidInput').value = '0';
-            document.getElementById('musiCheckbox').checked = false;
-            document.getElementById('personModal').style.display = 'flex';
-        }
-
-        function hidePersonModal() {
-            document.getElementById('personModal').style.display = 'none';
-        }
-
-        function showDeleteModal(index) {
-            personToDeleteIndex = index;
-            document.getElementById('deleteModal').style.display = 'flex';
-        }
-
-        function hideDeleteModal() {
-            personToDeleteIndex = -1;
-            document.getElementById('deleteModal').style.display = 'none';
-        }
-
-        function confirmDelete() {
-            if (personToDeleteIndex !== -1) {
-                people.splice(personToDeleteIndex, 1);
-                renderTable();
-            }
-            hideDeleteModal();
-        }
-
-        function savePerson() {
-            const person = {
-                id: nextId++,
-                anrede: document.getElementById('anredeSelect').value,
-                vorname: document.getElementById('vornameInput').value,
-                nachname: document.getElementById('nachnameInput').value,
-                einkommen: parseFloat(document.getElementById('einkommenInput').value || 0),
-                jamaatId: document.getElementById('jamaatIdInput').value,
-                musi: document.getElementById('musiCheckbox').checked,
-            };
-
-            // Neue Logik für 180 Euro
-            if (person.einkommen === 180) {
-                person.aamBudget = 180;
-                person.jalsaBudget = 0;
-                person.totalBudget = 180;
-                person.aamPaid = parseFloat(document.getElementById('aamPaidInput').value || 0);
-                person.jalsaPaid = parseFloat(document.getElementById('jalsaPaidInput').value || 0);
-            } else {
-                const budgets = chandaCalc(person.einkommen, person.musi);
-                person.aamBudget = budgets.aamBudget;
-                person.jalsaBudget = budgets.jalsaBudget;
-                person.totalBudget = (person.aamBudget || 0) + (person.jalsaBudget || 0);
-                person.aamPaid = parseFloat(document.getElementById('aamPaidInput').value || 0);
-                person.jalsaPaid = parseFloat(document.getElementById('jalsaPaidInput').value || 0);
-            }
-
-            person.aamRest = Math.max(0, person.aamBudget - person.aamPaid);
-            person.jalsaRest = Math.max(0, person.jalsaBudget - person.jalsaPaid);
-            
-            people.push(person);
-            renderTable();
-            hidePersonModal();
-        }
-
-        function showImportSuccessModal(message) {
-            document.getElementById('importSuccessMessage').innerText = message;
-            document.getElementById('importSuccessModal').style.display = 'flex';
-        }
-
-        function hideImportSuccessModal() {
-            document.getElementById('importSuccessModal').style.display = 'none';
-        }
-
-        function editCell(cell, index, key, type) {
-            if (currentEditingCell) return;
-            currentEditingCell = cell;
-
-            const value = people[index][key];
-            let inputElement;
-
-            if (key === 'musi') {
-                inputElement = document.createElement('select');
-                inputElement.innerHTML = `
-                    <option value="true" ${value ? 'selected' : ''}>✔️</option>
-                    <option value="false" ${!value ? 'selected' : ''}>❌</option>
-                `;
-            } else if (key === 'anrede') {
-                inputElement = document.createElement('select');
-                inputElement.innerHTML = `
-                    <option value="A" ${value === 'A' ? 'selected' : ''}>A</option>
-                    <option value="K" ${value === 'K' ? 'selected' : ''}>K</option>
-                    <option value="L" ${value === 'L' ? 'selected' : ''}>L</option>
-                `;
-            } else {
-                inputElement = document.createElement('input');
-                inputElement.type = type;
-                inputElement.value = value;
-            }
-
-            inputElement.style.width = '100%';
-            inputElement.style.boxSizing = 'border-box';
-            inputElement.style.border = '1px solid var(--primary-color)';
-            inputElement.style.padding = '0.5rem';
-            inputElement.style.margin = '0';
-            inputElement.style.height = '100%';
-            inputElement.style.borderRadius = '0.5rem';
-
-            cell.innerHTML = '';
-            cell.appendChild(inputElement);
-            inputElement.focus();
-
-            inputElement.addEventListener('blur', () => saveCell(cell, index, key, type, inputElement.value));
-            inputElement.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    inputElement.blur();
-                }
-            });
-        }
-
-        function saveCell(cell, index, key, type, newValue) {
-            currentEditingCell = null;
-            let finalValue;
-
-            if (key === 'musi') {
-                finalValue = newValue === 'true';
-            } else if (key === 'anrede') {
-                finalValue = newValue;
-            } else if (type === 'number') {
-                finalValue = parseFloat(newValue.replace(',', '.')) || 0;
-            } else {
-                finalValue = newValue;
-            }
-
-            if (people[index][key] === finalValue) {
-                renderTable();
-                return;
-            }
-
-            people[index][key] = finalValue;
-            
-            const p = people[index];
-
-            // Neue Logik für 180 Euro
-            if (p.einkommen === 180) {
-                p.aamBudget = 180;
-                p.jalsaBudget = 0;
-                p.totalBudget = 180;
-            } else {
-                if (key === 'einkommen' || key === 'musi') {
-                    const budgets = chandaCalc(p.einkommen, p.musi);
-                    p.aamBudget = budgets.aamBudget;
-                    p.jalsaBudget = budgets.jalsaBudget;
-                }
-                p.totalBudget = (p.aamBudget || 0) + (p.jalsaBudget || 0);
-            }
-
-            p.aamRest = Math.max(0, (p.aamBudget || 0) - (p.aamPaid || 0));
-            p.jalsaRest = Math.max(0, (p.jalsaBudget || 0) - (p.jalsaPaid || 0));
-            
-            renderTable();
-        }
-
-        function renderTable() {
-            const tableBody = document.getElementById("peopleTable");
-            tableBody.innerHTML = '';
-
-            const totalPages = Math.ceil(people.length / rowsPerPage);
-            const start = (currentPage - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-            const paginatedPeople = people.slice(start, end);
-
-            paginatedPeople.forEach((p, i) => {
-                const originalIndex = start + i;
-                const newRow = tableBody.insertRow();
-                newRow.innerHTML = `
-                    <td>${originalIndex + 1}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'jamaatId', 'text')">${p.jamaatId}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'vorname', 'text')">${p.vorname}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'nachname', 'text')">${p.nachname}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'einkommen', 'number')">${(p.einkommen || 0).toFixed(2)}</td>
-                    <td>${(p.totalBudget || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'aamBudget', 'number')">${(p.aamBudget || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'aamPaid', 'number')">${(p.aamPaid || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'jalsaBudget', 'number')">${(p.jalsaBudget || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'jalsaPaid', 'number')">${(p.jalsaPaid || 0).toFixed(2)}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'musi', 'checkbox')">${p.musi ? "✔️" : "❌"}</td>
-                    <td class="editable-cell" onclick="editCell(this, ${originalIndex}, 'anrede', 'text')">${p.anrede}</td>
-                    <td>
-                        <button class="delete-btn" onclick="showDeleteModal(${originalIndex})">Löschen</button>
-                        <button class="edit-btn" onclick="showDetailModal(${originalIndex})">Details</button>
-                    </td>
-                `;
-            });
-
-            updatePaginationControls();
-        }
-
-        function updatePaginationControls() {
-            const totalPages = Math.ceil(people.length / rowsPerPage);
-            document.getElementById('pageInfo').innerText = `Seite ${currentPage} von ${totalPages > 0 ? totalPages : 1}`;
-            document.getElementById('prevPageBtn').disabled = currentPage === 1;
-            document.getElementById('nextPageBtn').disabled = currentPage === totalPages || people.length === 0;
-        }
-
-        function prevPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                renderTable();
-            }
-        }
-
-        function nextPage() {
-            const totalPages = Math.ceil(people.length / rowsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderTable();
-            }
-        }
-
-        function showDetailModal(index) {
-            const p = people[index];
-            const detailModal = document.getElementById("detailModal");
-            const detailTitle = document.getElementById("detailTitle");
-            const detailContent = document.getElementById("detailContent");
-
-            detailTitle.innerText = `Detailansicht: ${p.vorname} ${p.nachname}`;
-            
-            // Logik für den 180 € Fall, um die Anzeige anzupassen
-            const aamBudget = (p.einkommen === 180) ? 180 : (p.aamBudget || 0);
-            const jalsaBudget = (p.einkommen === 180) ? 0 : (p.jalsaBudget || 0);
-
-            const aamPaid = parseFloat(p.aamPaid) || 0;
-            const jalsaPaid = parseFloat(p.jalsaPaid) || 0;
-
-            const aamRest = Math.max(0, aamBudget - aamPaid);
-            const jalsaRest = Math.max(0, jalsaBudget - jalsaPaid);
-            
-            const aamColor = (aamBudget - aamPaid) < 0 ? 'green' : 'red';
-            const jalsaColor = (jalsaBudget - jalsaPaid) < 0 ? 'green' : 'red';
-            
-            detailContent.innerHTML = `
-                <div class="detail-item"><b>ID:</b> <span>${p.id}</span></div>
-                <div class="detail-item"><b>Jamaat-ID:</b> <span>${p.jamaatId}</span></div>
-                <div class="detail-item"><b>Einkommen:</b> <span>${(p.einkommen || 0).toFixed(2)} €</span></div>
-                <div class="detail-header">
-                    <span>Kategorie</span>
-                    <span>Budget</span>
-                    <span>Bezahlt</span>
-                    <span>Rest</span>
+            <div class="control-group">
+                <label class="control-label">Moosi Anteil:</label>
+                <div class="controls">
+                    <select id="hdWassiyat" onchange="chandacalc()">
+                        <option value="3">1/3</option>
+                        <option value="4">1/4</option>
+                        <option value="5">1/5</option>
+                        <option value="6">1/6</option>
+                        <option value="7">1/7</option>
+                        <option value="8">1/8</option>
+                        <option value="9">1/9</option>
+                        <option value="10" selected>1/10</option>
+                    </select>
                 </div>
-                <div class="detail-item">
-                    <b>AAM/WASIYYAT:</b>
-                    <span>${aamBudget.toFixed(2)} €</span>
-                    <span>${aamPaid.toFixed(2)} €</span>
-                    <span style="color:${aamColor};"><b>${aamRest.toFixed(2)} €</b></span>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Moosi</span>
+                <div class="controls">
+                    <span id="moosi" class="badge badge-success">0.00</span>
+                    <span class="badge badge-inverse">€</span>
                 </div>
-                <div class="detail-item">
-                    <b>JALSA SALANA:</b>
-                    <span>${jalsaBudget.toFixed(2)} €</span>
-                    <span>${jalsaPaid.toFixed(2)} €</span>
-                    <span style="color:${jalsaColor};"><b>${jalsaRest.toFixed(2)} €</b></span>
+            </div>
+
+            <div class="control-group">
+                <span class="control-label">Chanda Aam</span>
+                <div class="controls">
+                    <span id="chaam" class="badge badge-info">0.00</span>
+                    <span class="badge badge-inverse">€</span>
                 </div>
-                <div class="detail-item"><b>Musi:</b> <span>${p.musi ? "Ja" : "Nein"}</span></div>
-                <div class="detail-item"><b>Anrede:</b> <span>${p.anrede}</span></div>
-                <button onclick="exportSinglePDF(${index})">Export als PDF</button>
-            `;
-            detailModal.style.display = 'flex';
-        }
+            </div>
 
-        function hideDetailModal() {
-            document.getElementById("detailModal").style.display = 'none';
-        }
+            <div class="control-group">
+                <span class="control-label">Jalsa Salana</span>
+                <div class="controls">
+                    <span id="jalsa" class="badge badge-warning">0.00</span>
+                    <span class="badge badge-inverse">€</span>
+                </div>
+            </div>
 
-        function exportSinglePDF(index) {
-            const p = people[index];
-            const anredeText = (p.anrede === 'L') ? 'Frau' : 'Herr';
-            const doc = new jsPDF();
-            doc.setFontSize(18);
-            doc.text(`Chanda-Übersicht – Jahr 2026`, 105, 20, null, null, 'center');
-            doc.setFontSize(14);
-            doc.text(`${anredeText} ${p.vorname} ${p.nachname} (Jamaat-ID: ${p.jamaatId})`, 105, 28, null, null, 'center');
-            doc.setFontSize(11);
-            doc.setTextColor(40, 40, 40);
-            doc.text(`Wassiyat: ${p.musi ? 'Ja' : 'Nein'}`, 172.5, 31, null, null, 'center');
+            <button class="btn-warning" onclick="resetCalculator()">Zurücksetzen</button>
+        </div>
+    </div>
 
-            // Logik für den 180 € Fall, um den Export anzupassen
-            const aamBudget = (p.einkommen === 180) ? 180 : (p.aamBudget || 0);
-            const jalsaBudget = (p.einkommen === 180) ? 0 : (p.jalsaBudget || 0);
-            const aamPaid = parseFloat(p.aamPaid) || 0;
-            const jalsaPaid = parseFloat(p.jalsaPaid) || 0;
-            
-            const aamRest = Math.max(0, aamBudget - aamPaid);
-            const jalsaRest = Math.max(0, jalsaBudget - jalsaPaid);
+    <div class="overview-container">
+        <div class="box">
+            <h3>📅 Übersicht – Chanda Aam</h3>
+            <div class="summary-row">
+                <span class="summary-label">Jährlich:</span>
+                <span id="chaamYear">0.00 €</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Jalsa Salana Jährlich:</span>
+                <span id="jalsaYear">0.00 €</span>
+            </div>
+            <hr>
+            <div class="summary-row">
+                <span class="summary-label">Gesamt Aam:</span>
+                <span id="totalAam" style="color: green; font-weight: bold;">0.00 €</span>
+            </div>
+        </div>
 
-            const tableData = [
-                ['Kategorie', 'Budget (€)', 'Bezahlt (€)', 'Rest (€)'],
-                ['AAM/WASIYYAT', aamBudget.toFixed(2), aamPaid.toFixed(2), aamRest.toFixed(2)],
-                ['JALSA SALANA', jalsaBudget.toFixed(2), jalsaPaid.toFixed(2), jalsaRest.toFixed(2)],
-            ];
-            doc.autoTable({
-                startY: 40,
-                head: [tableData[0]],
-                body: tableData.slice(1),
-                theme: 'grid',
-                styles: { halign: 'center', fontSize: 10 },
-                headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255] },
-                alternateRowStyles: { fillColor: [245, 245, 245] },
-                didDrawCell: data => {
-                    if (data.row.index === 0 && data.column.index === 3) {
-                        if (((aamBudget || 0) - (aamPaid || 0)) < 0) {
-                            doc.setTextColor(0, 128, 0);
-                        } else {
-                            doc.setTextColor(255, 0, 0);
-                        }
-                    }
-                    if (data.row.index === 1 && data.column.index === 3) {
-                         if (((jalsaBudget || 0) - (jalsaPaid || 0)) < 0) {
-                            doc.setTextColor(0, 128, 0);
-                        } else {
-                            doc.setTextColor(255, 0, 0);
-                        }
-                    }
-                }
-            });
-            const finalY = doc.autoTable.previous.finalY;
-            const totalBudget = (p.totalBudget || 0);
-            const totalPaid = aamPaid + jalsaPaid;
-            const totalRest = aamRest + jalsaRest;
-            const summaryData = [
-                ['Gesamtbudget (€)', 'Insgesamt bezahlt (€)', 'Gesamter Restbetrag (€)'],
-                [totalBudget.toFixed(2), totalPaid.toFixed(2), totalRest.toFixed(2)]
-            ];
-            doc.autoTable({
-                startY: finalY + 5,
-                head: [summaryData[0]],
-                body: [summaryData[1]],
-                theme: 'grid',
-                styles: { halign: 'center', fontSize: 11 },
-                headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255] },
-                alternateRowStyles: { fillColor: [250, 250, 250] },
-                didDrawCell: data => {
-                    if (data.row.index === 0 && data.column.index === 2) {
-                        if (totalRest < 0) {
-                            doc.setTextColor(0, 128, 0);
-                        } else {
-                            doc.setTextColor(255, 0, 0);
-                        }
-                    }
-                }
-            });
-            const summaryY = doc.autoTable.previous.finalY;
-            doc.setFillColor(230, 240, 255);
-            doc.rect(12, summaryY + 8, 185, 12, 'F');
-            doc.setFontSize(12);
-            doc.setTextColor(40, 40, 40);
-            doc.text(`Der insgesamt offene Betrag beträgt ${totalRest.toFixed(2)} €.`, 105, summaryY + 16, null, null, 'center');
-            doc.text(`Stand: ${new Date().toLocaleDateString('de-DE')}`, 14, summaryY + 30);
-            doc.save(`${p.vorname}_${p.nachname}_Budgetbericht.pdf`);
-        }
+        <div class="box">
+            <h3>📅 Übersicht – Moosi</h3>
+            <div class="summary-row">
+                <span class="summary-label">Jährlich:</span>
+                <span id="moosiYear">0.00 €</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Jalsa Salana Jährlich:</span>
+                <span id="moosiJalsaYear">0.00 €</span>
+            </div>
+            <hr>
+            <div class="summary-row">
+                <span class="summary-label">Gesamt Moosi:</span>
+                <span id="totalMoosi" style="color: green; font-weight: bold;">0.00 €</span>
+            </div>
+        </div>
+    </div>
+</div>
 
-        function chandaCalc(income, isMusi) {
-            let aamBudget = 0;
-            let jalsaBudget = 0;
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/calculator.js"></script>
 
-            if (isMusi) {
-                aamBudget = (income / 10) * 12;
-                jalsaBudget = income / 10;
-            } else {
-                aamBudget = 0;
-                jalsaBudget = income / 10;
-            }
-
-            return {
-                aamBudget: aamBudget,
-                jalsaBudget: jalsaBudget
-            };
-        }
-
-        function importCSV(event) {
-            const file = event.target.files[0];
-            if (!file) {
-                console.log("Keine Datei ausgewählt.");
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const delimiter = text.includes(';') ? ';' : ',';
-                const rows = text.trim().split('\n')
-                    .map(row => row.trim())
-                    .filter(row => row.length > 0)
-                    .map(row => row.split(delimiter));
-
-                if (rows.length < 2) {
-                    showImportSuccessModal('Die importierte Datei ist leer oder hat kein gültiges Format.');
-                    return;
-                }
-                const rawHeaders = rows[0].map(h => h.trim());
-                let bezahltCount = 0;
-                const headers = rawHeaders.map(h => {
-                    if (h.trim() === 'Bezahlt') {
-                        bezahltCount++;
-                        return bezahltCount === 1 ? 'Bezahlt_AAM' : 'Bezahlt_JALSA';
-                    }
-                    return h.trim();
-                });
-                const headerMap = {
-                    'ID': 'id',
-                    'Jamaat-ID': 'jamaatId',
-                    'Vorname': 'vorname',
-                    'Nachname': 'nachname',
-                    'Einkommen': 'einkommen',
-                    'AAM/WASIYYAT': 'aamBudget',
-                    'AAM/WASIYYAT Budget': 'aamBudget',
-                    'Bezahlt': 'aamPaid',
-                    'Bezahlt_AAM': 'aamPaid',
-                    'JALSA SALANA': 'jalsaBudget',
-                    'JALSA_SALANA': 'jalsaBudget',
-                    'JALSA SALANA Budget': 'jalsaBudget',
-                    'Bezahlt_JALSA': 'jalsaPaid',
-                    'Musi': 'musi',
-                    'Tanzeem': 'anrede',
-                    'Anrede': 'anrede',
-                };
-                const dataRows = rows.slice(1);
-                let importedPeople = [];
-                dataRows.forEach(row => {
-                    let personData = {};
-                    let hasValidData = false;
-                    headers.forEach((header, i) => {
-                        const key = headerMap[header];
-                        const value = row[i]?.trim() ?? '';
-                        if (key) {
-                            if (key.includes('Budget') || key.includes('Paid') || key === 'einkommen') {
-                                personData[key] = parseFloat(value.replace(',', '.')) || 0;
-                            } else if (key === 'musi') {
-                                personData[key] = value.toLowerCase() === 'true' || value === '1' || value.toLowerCase() === 'ja' || value === '✅';
-                            } else {
-                                personData[key] = value;
-                            }
-                            if (value.length > 0) hasValidData = true;
-                        }
-                    });
-                    if (hasValidData) {
-                        personData.id = nextId++;
-                        // Neue Logik für 180 Euro beim Import
-                        if (personData.einkommen === 180) {
-                            personData.aamBudget = 180;
-                            personData.jalsaBudget = 0;
-                            personData.totalBudget = 180;
-                        } else {
-                            const budgets = chandaCalc(personData.einkommen, personData.musi);
-                            personData.aamBudget = budgets.aamBudget;
-                            personData.jalsaBudget = budgets.jalsaBudget;
-                            personData.totalBudget = (personData.aamBudget || 0) + (personData.jalsaBudget || 0);
-                        }
-                        personData.aamRest = Math.max(0, (personData.aamBudget || 0) - (personData.aamPaid || 0));
-                        personData.jalsaRest = Math.max(0, (personData.jalsaBudget || 0) - (personData.jalsaPaid || 0));
-                        importedPeople.push(personData);
-                    }
-                });
-                if (importedPeople.length > 0) {
-                    people = importedPeople;
-                    currentPage = 1;
-                    renderTable();
-                    showImportSuccessModal(`Erfolgreich ${people.length} Einträge importiert.`);
-                } else {
-                    showImportSuccessModal('Die Datei enthält keine verwertbaren Datenzeilen.');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function searchTable() {
-            const input = document.getElementById("searchInput");
-            const filter = input.value.toLowerCase();
-            const rows = document.getElementById("peopleTable").getElementsByTagName("tr");
-
-            for (let i = 0; i < rows.length; i++) {
-                let found = false;
-                const cells = rows[i].getElementsByTagName("td");
-                for (let j = 0; j < cells.length; j++) {
-                    const cellText = cells[j].textContent || cells[j].innerText;
-                    if (cellText.toLowerCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) {
-                    rows[i].style.display = "";
-                } else {
-                    rows[i].style.display = "none";
-                }
-            }
-        }
-        
-        function exportTotalPDF() {
-            const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFontSize(18);
-            doc.text(`Gesamtübersicht – Budget App`, 105, 20, null, null, 'center');
-
-            const totalAamBudget = people.reduce((sum, p) => sum + (p.aamBudget || 0), 0);
-            const totalAamPaid = people.reduce((sum, p) => sum + (p.aamPaid || 0), 0);
-            const totalJalsaBudget = people.reduce((sum, p) => sum + (p.jalsaBudget || 0), 0);
-            const totalJalsaPaid = people.reduce((sum, p) => sum + (p.jalsaPaid || 0), 0);
-
-            const totalAamRest = totalAamBudget - totalAamPaid;
-            const totalJalsaRest = totalJalsaBudget - totalJalsaPaid;
-            const totalBudget = people.reduce((sum, p) => sum + (p.totalBudget || 0), 0);
-            const totalPaid = totalAamPaid + totalJalsaPaid;
-            const totalRest = totalAamRest + totalJalsaRest;
-
-            const tableData = [
-                ['Kategorie', 'Budget (€)', 'Bezahlt (€)', 'Rest (€)'],
-                ['AAM/WASIYYAT', totalAamBudget.toFixed(2), totalAamPaid.toFixed(2), totalAamRest.toFixed(2)],
-                ['JALSA SALANA', totalJalsaBudget.toFixed(2), totalJalsaPaid.toFixed(2), totalJalsaRest.toFixed(2)],
-            ];
-
-            doc.autoTable({
-                startY: 30,
-                head: [tableData[0]],
-                body: tableData.slice(1),
-                theme: 'grid',
-                styles: { halign: 'center', fontSize: 10 },
-                headStyles: { fillColor: [44, 62, 80], textColor: [255, 255, 255] },
-                alternateRowStyles: { fillColor: [245, 245, 245] },
-            });
-
-            const summaryY = doc.autoTable.previous.finalY;
-            doc.setFillColor(230, 240, 255);
-            doc.rect(12, summaryY + 8, 185, 12, 'F');
-            doc.setFontSize(12);
-            doc.setTextColor(40, 40, 40);
-            doc.text(`Der insgesamt offene Betrag beträgt ${totalRest.toFixed(2)} €.`, 105, summaryY + 16, null, null, 'center');
-
-            doc.text(`Stand: ${new Date().toLocaleDateString('de-DE')}`, 14, summaryY + 30);
-            doc.save(`Gesamt_Budgetbericht.pdf`);
-        }
-    </script>
 </body>
 </html>
